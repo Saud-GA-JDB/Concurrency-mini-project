@@ -24,7 +24,6 @@ public class EmployeeFileReader {
 
     public List<Employee> read(String filename) throws IOException, InterruptedException {
         List<Employee> employees = new ArrayList<>();
-        List<RuntimeException> errors = new ArrayList<>();
 
         ReentrantLock lock = new ReentrantLock();
         ExecutorService executor = Executors.newFixedThreadPool(5);
@@ -36,35 +35,25 @@ public class EmployeeFileReader {
                 final String employeeLine = line;
 
                 executor.submit( () -> {
+                    String[] values = employeeLine.split(",", -1);
+
+                    Employee employee = new Employee();
+
+                    employee.setId(Long.parseLong(values[0].trim()));
+                    employee.setName(values[1].trim());
+                    employee.setSalary(Double.parseDouble(values[2].trim()));
+                    employee.setDateJoined(LocalDate.parse(values[3].trim()));
+                    employee.setRole(Role.valueOf(values[4].trim().toUpperCase()));
+                    employee.setProjCompletionPercentage(
+                            Double.parseDouble(values[5].trim()));
+
+                    employee.setSalary(salaryCalculationService.calculateSalary(employee));
+
+                    lock.lock();
                     try {
-                        String[] values = employeeLine.split(",", -1);
-
-                        Employee employee = new Employee();
-
-                        employee.setId(Long.parseLong(values[0].trim()));
-                        employee.setName(values[1].trim());
-                        employee.setSalary(Double.parseDouble(values[2].trim()));
-                        employee.setDateJoined(LocalDate.parse(values[3].trim()));
-                        employee.setRole(Role.valueOf(values[4].trim().toUpperCase()));
-                        employee.setProjCompletionPercentage(
-                                Double.parseDouble(values[5].trim()));
-
-                        employee.setSalary(
-                                salaryCalculationService.calculateSalary(employee));
-
-                        lock.lock();
-                        try {
-                            employees.add(employee);
-                        } finally {
-                            lock.unlock();
-                        }
-                    } catch (RuntimeException e) {
-                        lock.lock();
-                        try {
-                            errors.add(e);
-                        } finally {
-                            lock.unlock();
-                        }
+                        employees.add(employee);
+                    } finally {
+                        lock.unlock();
                     }
                 });
             }
@@ -73,10 +62,6 @@ public class EmployeeFileReader {
         }
 
         while (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
-        }
-
-        if (!errors.isEmpty()) {
-            throw errors.get(0);
         }
 
         return employees;
