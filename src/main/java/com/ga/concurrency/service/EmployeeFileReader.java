@@ -2,6 +2,7 @@ package com.ga.concurrency.service;
 
 import com.ga.concurrency.model.Employee;
 import com.ga.concurrency.model.Role;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -10,30 +11,72 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
+@AllArgsConstructor
 public class EmployeeFileReader {
 
-    public List<Employee> read(String filename) throws IOException {
+    private SalaryCalculationService salaryCalculationService;
+
+    public List<Employee> read(String filename) throws IOException, InterruptedException {
         List<Employee> employees = new ArrayList<>();
+        List<RuntimeException> errors = new ArrayList<>();
+
+        ReentrantLock lock = new ReentrantLock();
+        ExecutorService executor = Executors.newFixedThreadPool(5);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
             String line;
 
             while ( (line = reader.readLine()) != null) {
-                String[] values = line.split(",", -1);
+                final String employeeLine = line;
 
-                Employee employee = new Employee();
+                executor.submit( () -> {
+                    try {
+                        String[] values = employeeLine.split(",", -1);
 
-                employee.setId(Long.parseLong(values[0].trim()));
-                employee.setName(values[1].trim());
-                employee.setSalary(Double.parseDouble(values[2].trim()));
-                employee.setDateJoined(LocalDate.parse(values[3].trim()));
-                employee.setRole(Role.valueOf(values[4].trim().toUpperCase()));
-                employee.setProjCompletionPercentage(Double.parseDouble(values[5].trim()));
+                        Employee employee = new Employee();
 
-                employees.add(employee);
+                        employee.setId(Long.parseLong(values[0].trim()));
+                        employee.setName(values[1].trim());
+                        employee.setSalary(Double.parseDouble(values[2].trim()));
+                        employee.setDateJoined(LocalDate.parse(values[3].trim()));
+                        employee.setRole(Role.valueOf(values[4].trim().toUpperCase()));
+                        employee.setProjCompletionPercentage(
+                                Double.parseDouble(values[5].trim()));
+
+                        employee.setSalary(
+                                salaryCalculationService.calculateSalary(employee));
+
+                        lock.lock();
+                        try {
+                            employees.add(employee);
+                        } finally {
+                            lock.unlock();
+                        }
+                    } catch (RuntimeException e) {
+                        lock.lock();
+                        try {
+                            errors.add(e);
+                        } finally {
+                            lock.unlock();
+                        }
+                    }
+                });
             }
+        } finally {
+            executor.shutdown();
+        }
+
+        while (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+        }
+
+        if (!errors.isEmpty()) {
+            throw errors.get(0);
         }
 
         return employees;
