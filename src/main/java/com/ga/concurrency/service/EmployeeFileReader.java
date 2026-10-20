@@ -2,7 +2,6 @@ package com.ga.concurrency.service;
 
 import com.ga.concurrency.model.Employee;
 import com.ga.concurrency.model.Role;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -17,16 +16,39 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
-@AllArgsConstructor
 public class EmployeeFileReader {
 
     private SalaryCalculationService salaryCalculationService;
+    private int threadsCount = 5;
+    private final ReentrantLock threadsCountLock = new ReentrantLock();
+
+    public EmployeeFileReader(SalaryCalculationService salaryCalculationService) {
+        this.salaryCalculationService = salaryCalculationService;
+    }
+
+    public void setThreadsCount(int threadsCount) {
+        threadsCountLock.lock();
+        try {
+            this.threadsCount = threadsCount;
+        } finally {
+            threadsCountLock.unlock();
+        }
+    }
+
+    public int getThreadsCount() {
+        threadsCountLock.lock();
+        try {
+            return threadsCount;
+        } finally {
+            threadsCountLock.unlock();
+        }
+    }
 
     public List<Employee> read(String filename) throws IOException, InterruptedException {
         List<Employee> employees = new ArrayList<>();
 
         ReentrantLock lock = new ReentrantLock();
-        ExecutorService executor = Executors.newFixedThreadPool(5);
+        ExecutorService executor = Executors.newFixedThreadPool(getThreadsCount());
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
             String line;
@@ -61,8 +83,7 @@ public class EmployeeFileReader {
             executor.shutdown();
         }
 
-        while (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
-        }
+        while (!executor.awaitTermination(1, TimeUnit.SECONDS)) {}
 
         return employees;
     }
