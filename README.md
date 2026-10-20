@@ -92,3 +92,9 @@ Category endpoints return complete CSV lines from the latest updated file. If no
 - **Sorted results:** Employees are sorted by ID using `Arrays.parallelSort` before writing.
 - **Salary-change column:** Each output row includes the applied increase or deduction, such as `+12.0%`, `-1.0%`, or `0.0%`.
 - **Employee categories:** Four endpoints print and return exceptional, good, average, and bad employees based on project completion.
+
+## AI Usage
+
+- Generate this README.md file
+- Discussing approaches and checking the code for any logic issues
+- the last 4 get endpoint for getting the exceptional, good, avg, and bad employee along with their service
