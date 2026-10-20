@@ -33,13 +33,20 @@ public class EmployeeFileWriter {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
             for (Employee employee : sortedEmployees) {
+                double percentage = employee.getSalaryChangePercentage();
+                String salaryChange = percentage + "%";
+
+                if (percentage > 0)
+                    salaryChange = "+" + salaryChange;
+
                 writer.write(
                         employee.getId() + "," +
                         employee.getName() + "," +
                         employee.getSalary() + "," +
                         employee.getDateJoined() + "," +
                         employee.getRole() + "," +
-                        employee.getProjCompletionPercentage());
+                        employee.getProjCompletionPercentage() + "," +
+                        salaryChange);
                 writer.newLine();
             }
         }
