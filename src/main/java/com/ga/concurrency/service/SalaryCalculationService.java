@@ -12,12 +12,16 @@ public class SalaryCalculationService {
     public double calculateSalary(Employee employee) {
         // opposite of the bonus. deduct salary if proj comp rate is less than 40%
         if (employee.getProjCompletionPercentage() < 0.4) {
+            employee.setSalaryChangePercentage(-1);
+
             double newSalary = employee.getSalary() * 0.99;
             return Math.round(newSalary * 100.0) / 100.0;
         }
 
-        if (employee.getProjCompletionPercentage() < 0.6)
+        if (employee.getProjCompletionPercentage() < 0.6) {
+            employee.setSalaryChangePercentage(0);
             return employee.getSalary();
+        }
 
         int yearsWorked = (int) ChronoUnit.YEARS.between(
                 employee.getDateJoined(), LocalDate.now());
@@ -42,6 +46,9 @@ public class SalaryCalculationService {
         // bonus
         if (employee.getProjCompletionPercentage() > 0.8)
             increasePercentage *= 1.5;
+
+        employee.setSalaryChangePercentage(
+                Math.round(increasePercentage * 10000.0) / 100.0);
 
         double newSalary = employee.getSalary() * (1 + increasePercentage);
 
