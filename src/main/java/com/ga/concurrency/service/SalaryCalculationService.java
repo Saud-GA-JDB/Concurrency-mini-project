@@ -10,18 +10,22 @@ import java.time.temporal.ChronoUnit;
 public class SalaryCalculationService {
 
     public double calculateSalary(Employee employee) {
-        if (employee.getProjCompletionPercentage() < 0.6) {
-            return employee.getSalary();
+        // opposite of the bonus. deduct salary if proj comp rate is less than 40%
+        if (employee.getProjCompletionPercentage() < 0.4) {
+            double newSalary = employee.getSalary() * 0.99;
+            return Math.round(newSalary * 100.0) / 100.0;
         }
+
+        if (employee.getProjCompletionPercentage() < 0.6)
+            return employee.getSalary();
 
         int yearsWorked = (int) ChronoUnit.YEARS.between(
                 employee.getDateJoined(), LocalDate.now());
 
         double increasePercentage = 0;
 
-        if (yearsWorked > 0) {
+        if (yearsWorked > 0)
             increasePercentage = yearsWorked * 0.02;
-        }
 
         switch (employee.getRole()) {
             case DIRECTOR:
@@ -35,9 +39,9 @@ public class SalaryCalculationService {
                 break;
         }
 
-        if (employee.getProjCompletionPercentage() > 0.8) {
+        // bonus
+        if (employee.getProjCompletionPercentage() > 0.8)
             increasePercentage *= 1.5;
-        }
 
         double newSalary = employee.getSalary() * (1 + increasePercentage);
 
