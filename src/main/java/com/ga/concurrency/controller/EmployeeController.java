@@ -1,6 +1,7 @@
 package com.ga.concurrency.controller;
 
 import com.ga.concurrency.model.Employee;
+import com.ga.concurrency.service.EmployeeCategoryService;
 import com.ga.concurrency.service.EmployeeFileReader;
 import com.ga.concurrency.service.EmployeeFileWriter;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,27 @@ public class EmployeeController {
 
     private EmployeeFileReader employeeFileReader;
     private EmployeeFileWriter employeeFileWriter;
+    private EmployeeCategoryService employeeCategoryService;
+
+    @GetMapping("/employees/exceptional")
+    public List<String> getExceptionalEmployees() throws IOException, InterruptedException {
+        return employeeCategoryService.getEmployees("exceptional");
+    }
+
+    @GetMapping("/employees/good")
+    public List<String> getGoodEmployees() throws IOException, InterruptedException {
+        return employeeCategoryService.getEmployees("good");
+    }
+
+    @GetMapping("/employees/average")
+    public List<String> getAverageEmployees() throws IOException, InterruptedException {
+        return employeeCategoryService.getEmployees("average");
+    }
+
+    @GetMapping("/employees/bad")
+    public List<String> getBadEmployees() throws IOException, InterruptedException {
+        return employeeCategoryService.getEmployees("bad");
+    }
 
     @PostMapping("/threadsCount")
     public String setThreadsCount(@RequestParam("count") int count) {
