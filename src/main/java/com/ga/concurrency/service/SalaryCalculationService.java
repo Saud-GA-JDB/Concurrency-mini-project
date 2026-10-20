@@ -35,6 +35,10 @@ public class SalaryCalculationService {
                 break;
         }
 
+        if (employee.getProjCompletionPercentage() > 0.8) {
+            increasePercentage *= 1.5;
+        }
+
         double newSalary = employee.getSalary() * (1 + increasePercentage);
 
         return Math.round(newSalary * 100.0) / 100.0;

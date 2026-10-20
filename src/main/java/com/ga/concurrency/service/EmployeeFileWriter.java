@@ -19,6 +19,7 @@ public class EmployeeFileWriter {
     public String write(String fileName, List<Employee> employees) throws IOException {
         Employee[] sortedEmployees = employees.toArray(new Employee[employees.size()]);
 
+        // sorts the array based on the id. it uses multiThreading if the array has more than 8,192 (bc/ of overhead)
         Arrays.parallelSort(sortedEmployees, Comparator.comparing(Employee::getId));
 
         File inputFile = new File(fileName);
