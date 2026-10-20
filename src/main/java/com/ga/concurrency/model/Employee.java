@@ -18,4 +18,6 @@ public class Employee {
     private Role role;
 
     private double projCompletionPercentage;
+
+    private double salaryChangePercentage;
 }
