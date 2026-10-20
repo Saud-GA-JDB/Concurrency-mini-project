@@ -17,6 +17,14 @@ public class EmployeeController {
     private EmployeeFileReader employeeFileReader;
     private EmployeeFileWriter employeeFileWriter;
 
+    @PostMapping("/threadsCount")
+    public String setThreadsCount(@RequestParam("count") int count) {
+        if (count < 1)
+            return "Thread count must be at least 1.";
+        employeeFileReader.setThreadsCount(count);
+        return "Thread count updated to " + count;
+    }
+
     @PostMapping("/employees/process")
     public String process() throws IOException, InterruptedException {
         String fileName = "employeesData/test_employees.csv";
